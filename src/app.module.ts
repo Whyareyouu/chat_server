@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { AppService } from './app.service';
-import { AppGateway } from './app.gateway';
 import { ConfigModule } from '@nestjs/config';
 import { UsersController } from './users/users.controller';
-import { UsersService } from './users/users.service';
-import { UsersModule } from './users/users.module';
+import { UserRepository } from './users/users.service';
 import { User } from './users/users.model';
-import { Chat } from './Chat/chat.model';
+import { Message } from './messages/message.model';
+import { SocketAppModule } from './socket/socket.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -22,12 +20,14 @@ import { Chat } from './Chat/chat.model';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      models: [User, Chat],
+      models: [User, Message],
       autoLoadModels: true,
     }),
+    SequelizeModule.forFeature([User, Message]),
     UsersModule,
+    SocketAppModule, // Добавляем модуль сокетов
   ],
-  controllers: [AppController, UsersController],
-  providers: [AppService, AppGateway, UsersService],
+  controllers: [UsersController],
+  providers: [UserRepository],
 })
 export class AppModule {}
