@@ -6,9 +6,13 @@ import { UserRepository } from './users.service';
 export class UsersController {
   constructor(private usersService: UserRepository) {}
 
-  @Post()
+  @Post('/registration')
   create(@Body() userDto: CreateUserDto) {
     return this.usersService.createUser(userDto);
+  }
+  @Post('/login')
+  login(@Body() userDto: CreateUserDto) {
+    return this.usersService.login(userDto);
   }
   @Get(':username')
   findByUsername(@Param('username') username: string) {
