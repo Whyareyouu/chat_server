@@ -37,7 +37,7 @@ export class UserRepository {
     return { id, username };
   }
 
-  async findByPk(id: number): Promise<User | null> {
+  async findByPk(id: string): Promise<User | null> {
     return this.userRepository.findByPk(id);
   }
 

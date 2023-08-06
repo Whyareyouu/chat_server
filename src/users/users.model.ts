@@ -1,4 +1,12 @@
-import { Column, DataType, Model, Table, HasMany } from 'sequelize-typescript';
+import {
+  Column,
+  DataType,
+  Model,
+  Table,
+  HasMany,
+  Default,
+  PrimaryKey,
+} from 'sequelize-typescript';
 import { Message } from '../messages/message.model';
 
 interface UserCreationAttrs {
@@ -9,14 +17,14 @@ interface UserCreationAttrs {
 
 @Table({ tableName: 'users' })
 export class User extends Model<User, UserCreationAttrs> {
+  @PrimaryKey
+  @Default(DataType.UUIDV4)
   @Column({
-    type: DataType.INTEGER,
-    unique: true,
+    type: DataType.UUID,
     allowNull: false,
-    autoIncrement: true,
-    primaryKey: true,
   })
-  id: number;
+  id: string;
+
   @Column({ type: DataType.STRING, allowNull: false, unique: true })
   username: string;
   @Column({ type: DataType.STRING, allowNull: false, unique: true })

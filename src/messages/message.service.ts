@@ -13,7 +13,7 @@ export class MessageRepository {
     return this.messageModel.findAll();
   }
 
-  async findById(id: number): Promise<Message | null> {
+  async findById(id: string): Promise<Message | null> {
     return this.messageModel.findByPk(id);
   }
 
@@ -26,7 +26,7 @@ export class MessageRepository {
     return message;
   }
 
-  async deleteMessage(id: number): Promise<boolean> {
+  async deleteMessage(id: string): Promise<boolean> {
     const deletedRows = await this.messageModel.destroy({ where: { id } });
     return deletedRows > 0;
   }

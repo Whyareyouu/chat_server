@@ -9,8 +9,8 @@ import {
 import { User } from '../users/users.model';
 
 interface MessageAttrs {
-  senderId: number;
-  recipientId: number;
+  senderId: string;
+  recipientId: string;
   content: string;
 }
 
@@ -18,11 +18,11 @@ interface MessageAttrs {
 export class Message extends Model<Message, MessageAttrs> {
   @ForeignKey(() => User)
   @Column
-  senderId: number;
+  senderId: string;
 
   @ForeignKey(() => User)
   @Column
-  recipientId: number;
+  recipientId: string;
 
   @Column(DataType.TEXT)
   content: string;

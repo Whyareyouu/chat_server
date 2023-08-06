@@ -4,10 +4,8 @@ import {
   SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Message } from './message.model';
 import { MessageRepository } from './message.service';
 import { UserRepository } from '../users/users.service';
 
@@ -36,7 +34,7 @@ export class MessageGateway
   @SubscribeMessage('sendMessage')
   async handleMessage(
     socket: Socket,
-    data: { senderId: number; recipientId: number; content: string },
+    data: { senderId: string; recipientId: string; content: string },
   ) {
     const { senderId, recipientId, content } = data;
 
