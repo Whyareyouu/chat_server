@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Message } from './message.model';
 import { MessageDto } from './dto/message.dto';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class MessageRepository {
@@ -29,5 +30,26 @@ export class MessageRepository {
   async deleteMessage(id: string): Promise<boolean> {
     const deletedRows = await this.messageModel.destroy({ where: { id } });
     return deletedRows > 0;
+  }
+  async findAllMessagesBetweenUsers(senderId: string, recipientId: string) {
+    // Выполняем запрос к базе данных, чтобы найти все сообщения между заданными отправителем и получателем
+    const messages = await this.messageModel.findAll({
+      where: {
+        // Используем условие "или", чтобы найти сообщения, где отправитель равен senderId И получатель равен recipientId
+        // или отправитель равен recipientId И получатель равен senderId
+        [Op.or]: [
+          {
+            senderId,
+            recipientId,
+          },
+          {
+            senderId: recipientId,
+            recipientId: senderId,
+          },
+        ],
+      },
+    });
+
+    return messages;
   }
 }

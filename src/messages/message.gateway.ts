@@ -8,8 +8,13 @@ import {
 import { Server, Socket } from 'socket.io';
 import { MessageRepository } from './message.service';
 import { UserRepository } from '../users/users.service';
+import { MessageDto } from './dto/message.dto';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: '*',
+  },
+})
 export class MessageGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -36,29 +41,40 @@ export class MessageGateway
     socket: Socket,
     data: { senderId: string; recipientId: string; content: string },
   ) {
+    // Получаем данные из сообщения, отправляемого клиентом
     const { senderId, recipientId, content } = data;
 
-    // Проверяем наличие отправителя и получателя в базе данных
-    const [sender, recipient] = await Promise.all([
-      this.userRepository.findByPk(senderId),
-      this.userRepository.findByPk(recipientId),
-    ]);
-
-    if (!sender || !recipient) {
-      return;
-    }
-
-    // Сохраняем сообщение в базу данных
-    await this.messageRepository.createMessage({
+    // Создаем новое сообщение
+    const newMessage: MessageDto = {
       senderId,
       recipientId,
       content,
-    });
+    };
 
-    // Отправляем сообщение отправителю и получателю
-    this.server
-      .to(senderId.toString())
-      .to(recipientId.toString())
-      .emit('chatMessage', { senderId, recipientId, content });
+    // Сохраняем сообщение в базе данных
+    const createdMessage = await this.messageRepository.createMessage(
+      newMessage,
+    );
+
+    // Отправляем новое сообщение всем клиентам, подписанным на событие 'receiveMessage'
+    this.server.emit('receiveMessage', createdMessage);
+  }
+
+  @SubscribeMessage('getMessages')
+  async handleGetMessages(
+    socket: Socket,
+    data: { senderId: string; recipientId: string },
+  ) {
+    // Получаем данные из запроса на получение сообщений
+    const { senderId, recipientId } = data;
+
+    // Получаем все сообщения между заданными отправителем и получателем из базы данных
+    const messages = await this.messageRepository.findAllMessagesBetweenUsers(
+      senderId,
+      recipientId,
+    );
+
+    // Отправляем сообщения клиенту, который сделал запрос, с помощью события 'receiveMessages'
+    socket.emit('receiveMessages', messages);
   }
 }
