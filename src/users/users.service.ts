@@ -48,7 +48,6 @@ export class UserRepository {
           [Op.iLike]: `%${sanitizedUsername}%`,
         },
       },
-      include: User,
     });
     return users;
   }
