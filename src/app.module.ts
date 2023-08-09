@@ -7,6 +7,8 @@ import { User } from './users/users.model';
 import { Message } from './messages/message.model';
 import { SocketAppModule } from './socket/socket.module';
 import { UsersModule } from './users/users.module';
+import { MessageController } from './messages/message.controller';
+import { MessageRepository } from './messages/message.service';
 
 @Module({
   imports: [
@@ -27,7 +29,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     SocketAppModule, // Добавляем модуль сокетов
   ],
-  controllers: [UsersController],
-  providers: [UserRepository],
+  controllers: [UsersController, MessageController],
+  providers: [UserRepository, MessageRepository],
 })
 export class AppModule {}

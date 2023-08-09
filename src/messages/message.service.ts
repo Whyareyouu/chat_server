@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Message } from './message.model';
 import { MessageDto } from './dto/message.dto';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 
 @Injectable()
 export class MessageRepository {
@@ -51,5 +51,51 @@ export class MessageRepository {
     });
 
     return messages;
+  }
+  async getUserContactsAndLastMessages(userId: string): Promise<any[]> {
+    // Получаем список всех контактов (пользователей), с которыми общался пользователь
+    const contacts = await this.messageModel.findAll({
+      where: {
+        [Op.or]: [{ senderId: userId }, { recipientId: userId }],
+      },
+      attributes: [
+        [
+          Sequelize.literal(
+            `(CASE WHEN "Message"."senderId" = :userId THEN "Message"."recipientId" ELSE "Message"."senderId" END)`,
+          ),
+          'contactId',
+        ],
+      ],
+      replacements: { userId },
+      group: ['contactId'],
+    });
+
+    // Для каждого контакта находим его последнее сообщение
+    const contactsWithLastMessages = await Promise.all(
+      contacts.map(async (contact: any) => {
+        const lastMessage = await this.messageModel.findOne({
+          where: {
+            [Op.or]: [
+              {
+                senderId: userId,
+                recipientId: contact.getDataValue('contactId'),
+              },
+              {
+                senderId: contact.getDataValue('contactId'),
+                recipientId: userId,
+              },
+            ],
+          },
+          order: [['createdAt', 'DESC']],
+        });
+
+        return {
+          contactId: contact.getDataValue('contactId'),
+          lastMessage: lastMessage ? lastMessage.getDataValue('content') : null,
+        };
+      }),
+    );
+
+    return contactsWithLastMessages;
   }
 }
