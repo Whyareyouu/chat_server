@@ -56,8 +56,8 @@ export class MessageGateway
       newMessage,
     );
 
-    // Отправляем новое сообщение всем клиентам, подписанным на событие 'receiveMessage'
-    this.server.emit('receiveMessage', createdMessage);
+    // Отправляем новое сообщение всем клиентам, подписанным на событие 'receiveMessages'
+    this.server.emit('receiveMessages', createdMessage);
   }
 
   @SubscribeMessage('getMessages')
