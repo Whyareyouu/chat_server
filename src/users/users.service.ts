@@ -9,10 +9,14 @@ import { InjectModel } from '@nestjs/sequelize';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Op } from 'sequelize';
 import * as bcrypt from 'bcryptjs';
+import { FileService } from '../file/file.service';
 
 @Injectable()
 export class UserRepository {
-  constructor(@InjectModel(User) private userRepository: typeof User) {}
+  constructor(
+    @InjectModel(User) private userRepository: typeof User,
+    private fileService: FileService,
+  ) {}
 
   async login(dto: CreateUserDto) {
     const user = await this.validateUser(dto);

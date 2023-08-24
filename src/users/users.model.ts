@@ -31,6 +31,8 @@ export class User extends Model<User, UserCreationAttrs> {
   email: string;
   @Column({ type: DataType.STRING, allowNull: false })
   password: string;
+  @Column({ type: DataType.STRING, allowNull: true })
+  avatar: string;
   @HasMany(() => Message, 'senderId')
   sentMessages: Message[];
   @HasMany(() => Message, 'recipientId')

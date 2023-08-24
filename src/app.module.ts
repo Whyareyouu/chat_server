@@ -9,6 +9,7 @@ import { SocketAppModule } from './socket/socket.module';
 import { UsersModule } from './users/users.module';
 import { MessageController } from './messages/message.controller';
 import { MessageRepository } from './messages/message.service';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { MessageRepository } from './messages/message.service';
     }),
     SequelizeModule.forFeature([User, Message]),
     UsersModule,
-    SocketAppModule, // Добавляем модуль сокетов
+    SocketAppModule,
+    FileModule, // Добавляем модуль сокетов
   ],
   controllers: [UsersController, MessageController],
   providers: [UserRepository, MessageRepository],
