@@ -10,7 +10,9 @@ import { UsersModule } from './users/users.module';
 import { MessageController } from './messages/message.controller';
 import { MessageRepository } from './messages/message.service';
 import { FileModule } from './file/file.module';
-
+import { AuthModule } from './Auth/auth.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import * as path from 'path';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -26,10 +28,14 @@ import { FileModule } from './file/file.module';
       models: [User, Message],
       autoLoadModels: true,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: path.resolve(__dirname, 'client'),
+    }),
     SequelizeModule.forFeature([User, Message]),
     UsersModule,
     SocketAppModule,
-    FileModule, // Добавляем модуль сокетов
+    AuthModule,
+    FileModule,
   ],
   controllers: [UsersController, MessageController],
   providers: [UserRepository, MessageRepository],

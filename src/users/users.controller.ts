@@ -10,10 +10,6 @@ export class UsersController {
   create(@Body() userDto: CreateUserDto) {
     return this.usersService.createUser(userDto);
   }
-  @Post('/login')
-  login(@Body() userDto: CreateUserDto) {
-    return this.usersService.login(userDto);
-  }
   @Get(':username')
   findByUsername(@Param('username') username: string) {
     return this.usersService.findByUsername(username);

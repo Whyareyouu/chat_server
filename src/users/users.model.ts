@@ -13,6 +13,8 @@ interface UserCreationAttrs {
   username: string;
   email: string;
   password: string;
+  name: string;
+  avatar: string;
 }
 
 @Table({ tableName: 'users' })
@@ -33,6 +35,8 @@ export class User extends Model<User, UserCreationAttrs> {
   password: string;
   @Column({ type: DataType.STRING, allowNull: true })
   avatar: string;
+  @Column({ type: DataType.STRING, allowNull: true })
+  name: string;
   @HasMany(() => Message, 'senderId')
   sentMessages: Message[];
   @HasMany(() => Message, 'recipientId')
