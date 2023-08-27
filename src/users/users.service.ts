@@ -1,16 +1,10 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { User } from './users.model';
 import { InjectModel } from '@nestjs/sequelize';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Op } from 'sequelize';
-import * as bcrypt from 'bcryptjs';
 import { FileService } from '../file/file.service';
-
+import { decode } from 'jsonwebtoken';
 @Injectable()
 export class UserRepository {
   constructor(
