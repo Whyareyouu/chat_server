@@ -8,7 +8,7 @@ import * as mime from 'mime';
 export class FileService {
   async createFile(file): Promise<string> {
     try {
-      const fileExtension = mime.getExtension(file.mimeType);
+      const fileExtension = mime.extension(file.mimeType);
       const fileName = v4() + '.' + fileExtension;
       const filePath = path.resolve(__dirname, '..', 'client');
       if (!fs.existsSync(filePath)) {

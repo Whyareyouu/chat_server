@@ -24,7 +24,9 @@ export class JwtAuthGuard implements CanActivate {
           message: 'Пользователь не авторизован',
         });
       }
-      const user = this.jweService.verify(token);
+      const user = this.jweService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
       req.user = user;
       return true;
     } catch (e) {

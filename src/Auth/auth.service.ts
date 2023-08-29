@@ -19,7 +19,12 @@ export class AuthService {
 
   async login(userDto: CreateUserDto) {
     const user = await this.validateUser(userDto);
-    return this.generateToken(user);
+    const token = await this.generateToken(user);
+    const refreshToken = await this.generateRefreshToken(user);
+    return {
+      ...token,
+      ...refreshToken,
+    };
   }
 
   async registration(userDto: CreateUserDto) {
@@ -35,7 +40,33 @@ export class AuthService {
       ...userDto,
       password: hashPassword,
     });
-    return this.generateToken(user);
+    const token = await this.generateToken(user);
+    const refreshToken = await this.generateRefreshToken(user);
+    return { ...token, ...refreshToken };
+  }
+
+  async refreshTokens(refreshToken: string) {
+    try {
+      const decoded = this.jwtService.verify(refreshToken);
+      const user = await this.userRepository.getUserByEmail(decoded.email);
+      return this.generateToken(user);
+    } catch (error) {
+      throw new UnauthorizedException('Некорректный токен обновления');
+    }
+  }
+
+  private async generateRefreshToken(user: User) {
+    const payload = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    };
+    return {
+      refreshToken: this.jwtService.sign(payload, {
+        expiresIn: '7d',
+        secret: process.env.JWT_SECRET,
+      }),
+    };
   }
 
   private async generateToken(user: User) {
@@ -45,9 +76,13 @@ export class AuthService {
       username: user.username,
     };
     return {
-      token: this.jwtService.sign(payload),
+      token: this.jwtService.sign(payload, {
+        expiresIn: '1h',
+        secret: process.env.JWT_SECRET,
+      }),
     };
   }
+
   private async validateUser(userDto: CreateUserDto) {
     const user = await this.userRepository.getUserByEmail(userDto.email);
     const passwordEquals = await bcrypt.compare(
