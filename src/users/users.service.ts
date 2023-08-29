@@ -4,7 +4,6 @@ import { InjectModel } from '@nestjs/sequelize';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Op } from 'sequelize';
 import { FileService } from '../file/file.service';
-import { decode } from 'jsonwebtoken';
 @Injectable()
 export class UserRepository {
   constructor(

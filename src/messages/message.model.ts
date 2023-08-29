@@ -5,8 +5,6 @@ import {
   ForeignKey,
   BelongsTo,
   DataType,
-  PrimaryKey,
-  Default,
 } from 'sequelize-typescript';
 import { User } from '../users/users.model';
 

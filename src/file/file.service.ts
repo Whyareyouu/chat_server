@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as uuid from 'uuid';
+import { v4 } from 'uuid';
 import * as mime from 'mime';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class FileService {
   async createFile(file): Promise<string> {
     try {
       const fileExtension = mime.getExtension(file.mimeType);
-      const fileName = uuid.v4() + '.' + fileExtension;
+      const fileName = v4() + '.' + fileExtension;
       const filePath = path.resolve(__dirname, '..', 'client');
       if (!fs.existsSync(filePath)) {
         fs.mkdir(filePath, { recursive: true }, () => {});
