@@ -43,6 +43,19 @@ export class UserRepository {
     return user;
   }
 
+  async getMe(userEmail: string) {
+    const user = await this.getUserByEmail(userEmail);
+
+    const { id, username, email, name, avatar } = user;
+    return {
+      id,
+      username,
+      email,
+      name,
+      avatar,
+    };
+  }
+
   async findByPk(id: string): Promise<User | null> {
     return this.userRepository.findByPk(id);
   }
@@ -53,6 +66,9 @@ export class UserRepository {
         username: {
           [Op.iLike]: `%${sanitizedUsername}%`,
         },
+      },
+      attributes: {
+        exclude: ['password', 'createdAt', 'updatedAt'],
       },
     });
     return users;

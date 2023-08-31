@@ -20,7 +20,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('/getMe')
   getMe(@GetEmailByToken() email: string) {
-    return this.usersService.getUserByEmail(email);
+    return this.usersService.getMe(email);
   }
   @Post('/updateAvatar')
   @UseGuards(JwtAuthGuard)
