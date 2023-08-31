@@ -1,15 +1,20 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import { v4 } from 'uuid';
-import * as mime from 'mime';
+import * as uuid from 'uuid';
 
 @Injectable()
 export class FileService {
-  async createFile(file): Promise<string> {
+  async createFile(file, allowedExtensions: string[]): Promise<string> {
     try {
-      const fileExtension = mime.extension(file.mimeType);
-      const fileName = v4() + '.' + fileExtension;
+      const fileExtension = path.extname(file.originalname);
+      if (!allowedExtensions.includes(fileExtension)) {
+        throw new HttpException(
+          'Недопустимое разрешение файла',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const fileName = uuid.v4() + fileExtension;
       const filePath = path.resolve(__dirname, '..', 'client');
       if (!fs.existsSync(filePath)) {
         fs.mkdir(filePath, { recursive: true }, () => {});

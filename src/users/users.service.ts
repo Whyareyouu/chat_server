@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from './users.model';
 import { InjectModel } from '@nestjs/sequelize';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -13,6 +13,33 @@ export class UserRepository {
 
   async createUser(dto: CreateUserDto) {
     const user = await this.userRepository.create(dto);
+    return user;
+  }
+
+  async updateUserAvatar(email, avatar) {
+    const user = await this.getUserByEmail(email);
+    const allowedExtensions = ['.jpg', '.png', '.jpeg'];
+    const newUserAvatar = await this.fileService.createFile(
+      avatar,
+      allowedExtensions,
+    );
+    user.avatar = newUserAvatar;
+    await user.save();
+    return user;
+  }
+
+  async updateUserProfile(email: string, dto: CreateUserDto) {
+    const user = await this.getUserByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+    if (dto.name) {
+      user.name = dto.name;
+    }
+    if (dto.username) {
+      user.username = dto.username;
+    }
+    await user.save();
     return user;
   }
 
