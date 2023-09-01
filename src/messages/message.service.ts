@@ -3,11 +3,13 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Message } from './message.model';
 import { MessageDto } from './dto/message.dto';
 import { Op, Sequelize } from 'sequelize';
+import { UserRepository } from '../users/users.service';
 
 @Injectable()
 export class MessageRepository {
   constructor(
     @InjectModel(Message) private readonly messageModel: typeof Message,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async findAll(): Promise<Message[]> {
@@ -89,8 +91,14 @@ export class MessageRepository {
           order: [['createdAt', 'DESC']],
         });
 
+        const user = await this.userRepository.findByPk(
+          contact.getDataValue('contactId'),
+        );
+
         return {
           contactId: contact.getDataValue('contactId'),
+          username: user ? user.getDataValue('username') : null,
+          avatar: user.avatar ? user.getDataValue('avatar') : null,
           lastMessage: lastMessage ? lastMessage.getDataValue('content') : null,
         };
       }),

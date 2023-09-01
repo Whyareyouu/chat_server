@@ -5,10 +5,13 @@ import {
   ForeignKey,
   BelongsTo,
   DataType,
+  PrimaryKey,
+  Default,
 } from 'sequelize-typescript';
 import { User } from '../users/users.model';
 
 interface MessageAttrs {
+  id: string;
   senderId: string;
   recipientId: string;
   content: string;
@@ -16,6 +19,13 @@ interface MessageAttrs {
 
 @Table
 export class Message extends Model<Message, MessageAttrs> {
+  @PrimaryKey
+  @Default(DataType.UUIDV4)
+  @Column({
+    type: DataType.UUID,
+  })
+  id: string;
+
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID })
   @Column

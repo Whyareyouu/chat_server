@@ -7,7 +7,6 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { MessageRepository } from './message.service';
-import { UserRepository } from '../users/users.service';
 import { MessageDto } from './dto/message.dto';
 
 @WebSocketGateway({
@@ -18,10 +17,7 @@ import { MessageDto } from './dto/message.dto';
 export class MessageGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(
-    private readonly messageRepository: MessageRepository,
-    private readonly userRepository: UserRepository,
-  ) {}
+  constructor(private readonly messageRepository: MessageRepository) {}
 
   @WebSocketServer()
   server: Server;
