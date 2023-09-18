@@ -23,7 +23,6 @@ export class MessageGateway
   server: Server;
 
   async handleConnection(socket: Socket) {
-    // Логика, выполняемая при подключении клиента
     console.log('Client connected:', socket.id);
   }
 
@@ -32,6 +31,21 @@ export class MessageGateway
     console.log('Client disconnected:', socket.id);
   }
 
+  //@todo Додедлать методы
+  @SubscribeMessage('message:get')
+  async handleMessagesGet(
+    socket: Socket,
+    data: { senderId: string; recipientId: string },
+  ) {
+    const { senderId, recipientId } = data;
+
+    const messages = await this.messageRepository.findAllMessagesBetweenUsers(
+      senderId,
+      recipientId,
+    );
+
+    socket.emit('message:get', messages);
+  }
   @SubscribeMessage('sendMessage')
   async handleMessage(
     socket: Socket,
