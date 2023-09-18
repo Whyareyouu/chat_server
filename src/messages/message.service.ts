@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Message } from './message.model';
 import { MessageDto } from './dto/message.dto';
 import { Op, Sequelize } from 'sequelize';
 import { UserRepository } from '../users/users.service';
+import { WebSocketServer } from '@nestjs/websockets';
+import { Server } from 'socket.io';
 
 @Injectable()
 export class MessageRepository {
@@ -11,6 +13,9 @@ export class MessageRepository {
     @InjectModel(Message) private readonly messageModel: typeof Message,
     private readonly userRepository: UserRepository,
   ) {}
+
+  @WebSocketServer()
+  private server: Server;
 
   async findAll(): Promise<Message[]> {
     return this.messageModel.findAll();
@@ -29,9 +34,19 @@ export class MessageRepository {
     return message;
   }
 
-  async deleteMessage(id: string): Promise<boolean> {
-    const deletedRows = await this.messageModel.destroy({ where: { id } });
-    return deletedRows > 0;
+  async deleteMessage(id: string) {
+    const message = await this.messageModel.findOne({ where: { id } });
+    if (message) {
+      try {
+        await message.destroy();
+        return 'Сообщение удалено';
+      } catch (e) {
+        throw new HttpException(
+          'Произошла ошибка при удаление сообщения',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
   }
   async findAllMessagesBetweenUsers(senderId: string, recipientId: string) {
     // Выполняем запрос к базе данных, чтобы найти все сообщения между заданными отправителем и получателем
