@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { MessageRepository } from './message.service';
 import { MessageDto } from './dto/message.dto';
+import { Message } from './message.model';
 
 @WebSocketGateway({
   cors: {
@@ -60,6 +61,26 @@ export class MessageGateway
     );
     socket.emit('message:post', createdMessage);
     await this.handleMessagesGet({ senderId, recipientId });
+  }
+  @SubscribeMessage('message:put')
+  async handleMessagePut(message: Message): Promise<void> {
+    const updatedMessage = await this.messageRepository.updateMessage(message);
+    this.server.emit('message:put', updatedMessage);
+    await this.handleMessagesGet({
+      senderId: message.senderId,
+      recipientId: message.recipientId,
+    });
+  }
+  @SubscribeMessage('message:delete')
+  async handleMessageDelete(message: Message): Promise<void> {
+    const deletedMessage = await this.messageRepository.deleteMessage(
+      message.id,
+    );
+    this.server.emit('message:delete', deletedMessage);
+    await this.handleMessagesGet({
+      senderId: message.senderId,
+      recipientId: message.recipientId,
+    });
   }
 }
 // @SubscribeMessage('sendMessage')
