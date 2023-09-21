@@ -32,7 +32,6 @@ export class MessageGateway
     console.log('Client disconnected:', socket.id);
   }
 
-  //@todo Додедлать методы
   @SubscribeMessage('message:get')
   async handleMessagesGet(data: { senderId: string; recipientId: string }) {
     const { senderId, recipientId } = data;
@@ -42,7 +41,7 @@ export class MessageGateway
       recipientId,
     );
 
-    this.server.emit('message:get', messages);
+    this.server.emit('messages', messages);
   }
 
   @SubscribeMessage('message:post')
@@ -60,13 +59,13 @@ export class MessageGateway
       newMessage,
     );
     socket.emit('message:post', createdMessage);
-    await this.handleMessagesGet({ senderId, recipientId });
+    this.handleMessagesGet({ senderId, recipientId });
   }
   @SubscribeMessage('message:put')
   async handleMessagePut(message: Message): Promise<void> {
     const updatedMessage = await this.messageRepository.updateMessage(message);
     this.server.emit('message:put', updatedMessage);
-    await this.handleMessagesGet({
+    this.handleMessagesGet({
       senderId: message.senderId,
       recipientId: message.recipientId,
     });
@@ -77,7 +76,7 @@ export class MessageGateway
       message.id,
     );
     this.server.emit('message:delete', deletedMessage);
-    await this.handleMessagesGet({
+    this.handleMessagesGet({
       senderId: message.senderId,
       recipientId: message.recipientId,
     });
