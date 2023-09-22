@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { MessageRepository } from './message.service';
 import { MessageDto } from './dto/message.dto';
+import { Message } from './message.model';
 
 @WebSocketGateway({
   cors: {
@@ -23,7 +24,6 @@ export class MessageGateway
   server: Server;
 
   async handleConnection(socket: Socket) {
-    // Логика, выполняемая при подключении клиента
     console.log('Client connected:', socket.id);
   }
 
@@ -32,45 +32,55 @@ export class MessageGateway
     console.log('Client disconnected:', socket.id);
   }
 
-  @SubscribeMessage('sendMessage')
-  async handleMessage(
+  //@todo Додедлать методы
+  @SubscribeMessage('message:get')
+  async handleMessagesGet(socket: Socket, data: { senderId; recipientId }) {
+    const { senderId, recipientId } = data;
+    if (!senderId || !recipientId) {
+      return;
+    }
+    const messages = await this.messageRepository.findAllMessagesBetweenUsers(
+      senderId,
+      recipientId,
+    );
+    socket.emit('messages', messages);
+  }
+
+  @SubscribeMessage('message:post')
+  async handleMessagePost(
     socket: Socket,
     data: { senderId: string; recipientId: string; content: string },
   ) {
-    // Получаем данные из сообщения, отправляемого клиентом
     const { senderId, recipientId, content } = data;
-
-    // Создаем новое сообщение
     const newMessage: MessageDto = {
       senderId,
       recipientId,
       content,
     };
-
-    // Сохраняем сообщение в базе данных
     const createdMessage = await this.messageRepository.createMessage(
       newMessage,
     );
-
-    // Отправляем новое сообщение всем клиентам, подписанным на событие 'receiveMessages'
-    this.server.emit('receiveMessages', createdMessage);
+    socket.emit('message:post', createdMessage);
+    this.handleMessagesGet(socket, { senderId, recipientId });
   }
-
-  @SubscribeMessage('getMessages')
-  async handleGetMessages(
-    socket: Socket,
-    data: { senderId: string; recipientId: string },
-  ) {
-    // Получаем данные из запроса на получение сообщений
-    const { senderId, recipientId } = data;
-
-    // Получаем все сообщения между заданными отправителем и получателем из базы данных
-    const messages = await this.messageRepository.findAllMessagesBetweenUsers(
-      senderId,
-      recipientId,
+  @SubscribeMessage('message:put')
+  async handleMessagePut(socket: Socket, message: Message): Promise<void> {
+    const updatedMessage = await this.messageRepository.updateMessage(message);
+    socket.emit('message:put', updatedMessage);
+    this.handleMessagesGet(socket, {
+      senderId: message.senderId,
+      recipientId: message.recipientId,
+    });
+  }
+  @SubscribeMessage('message:delete')
+  async handleMessageDelete(socket: Socket, message: Message): Promise<void> {
+    const deletedMessage = await this.messageRepository.deleteMessage(
+      message.id,
     );
-
-    // Отправляем сообщения клиенту, который сделал запрос, с помощью события 'receiveMessages'
-    socket.emit('receiveMessages', messages);
+    socket.emit('message:delete', deletedMessage);
+    this.handleMessagesGet(socket, {
+      senderId: message.senderId,
+      recipientId: message.recipientId,
+    });
   }
 }
