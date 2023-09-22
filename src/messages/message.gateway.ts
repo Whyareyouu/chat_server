@@ -34,15 +34,16 @@ export class MessageGateway
 
   //@todo Додедлать методы
   @SubscribeMessage('message:get')
-  async handleMessagesGet(data: { senderId: string; recipientId: string }) {
+  async handleMessagesGet(socket: Socket, data: { senderId; recipientId }) {
     const { senderId, recipientId } = data;
-
+    if (!senderId || !recipientId) {
+      return;
+    }
     const messages = await this.messageRepository.findAllMessagesBetweenUsers(
       senderId,
       recipientId,
     );
-
-    this.server.emit('messages', messages);
+    socket.emit('messages', messages);
   }
 
   @SubscribeMessage('message:post')
@@ -60,67 +61,26 @@ export class MessageGateway
       newMessage,
     );
     socket.emit('message:post', createdMessage);
-    this.handleMessagesGet({ senderId, recipientId });
+    this.handleMessagesGet(socket, { senderId, recipientId });
   }
   @SubscribeMessage('message:put')
-  async handleMessagePut(message: Message): Promise<void> {
+  async handleMessagePut(socket: Socket, message: Message): Promise<void> {
     const updatedMessage = await this.messageRepository.updateMessage(message);
-    this.server.emit('message:put', updatedMessage);
-    this.handleMessagesGet({
+    socket.emit('message:put', updatedMessage);
+    this.handleMessagesGet(socket, {
       senderId: message.senderId,
       recipientId: message.recipientId,
     });
   }
   @SubscribeMessage('message:delete')
-  async handleMessageDelete(message: Message): Promise<void> {
+  async handleMessageDelete(socket: Socket, message: Message): Promise<void> {
     const deletedMessage = await this.messageRepository.deleteMessage(
       message.id,
     );
-    this.server.emit('message:delete', deletedMessage);
-    this.handleMessagesGet({
+    socket.emit('message:delete', deletedMessage);
+    this.handleMessagesGet(socket, {
       senderId: message.senderId,
       recipientId: message.recipientId,
     });
   }
 }
-// @SubscribeMessage('sendMessage')
-// async handleMessage(
-//     socket: Socket,
-//     data: { senderId: string; recipientId: string; content: string },
-// ) {
-//   // Получаем данные из сообщения, отправляемого клиентом
-//   const { senderId, recipientId, content } = data;
-//
-//   // Создаем новое сообщение
-//   const newMessage: MessageDto = {
-//     senderId,
-//     recipientId,
-//     content,
-//   };
-//
-//   // Сохраняем сообщение в базе данных
-//   const createdMessage = await this.messageRepository.createMessage(
-//       newMessage,
-//   );
-//
-//   // Отправляем новое сообщение всем клиентам, подписанным на событие 'receiveMessages'
-//   this.server.emit('receiveMessages', createdMessage);
-// }
-//
-// @SubscribeMessage('getMessages')
-// async handleGetMessages(
-//     socket: Socket,
-//     data: { senderId: string; recipientId: string },
-// ) {
-//   // Получаем данные из запроса на получение сообщений
-//   const { senderId, recipientId } = data;
-//
-//   // Получаем все сообщения между заданными отправителем и получателем из базы данных
-//   const messages = await this.messageRepository.findAllMessagesBetweenUsers(
-//       senderId,
-//       recipientId,
-//   );
-//
-//   // Отправляем сообщения клиенту, который сделал запрос, с помощью события 'receiveMessages'
-//   socket.emit('receiveMessages', messages);
-// }
