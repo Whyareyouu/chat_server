@@ -10,6 +10,8 @@ import { MessageRepository } from './message.service';
 import { MessageDto } from './dto/message.dto';
 import { Message } from './message.model';
 
+const userSockets = new Map<string, Socket>();
+
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -19,20 +21,24 @@ export class MessageGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   constructor(private readonly messageRepository: MessageRepository) {}
-
   @WebSocketServer()
   server: Server;
 
   async handleConnection(socket: Socket) {
-    console.log('Client connected:', socket.id);
+    const userId = socket.handshake.query.userId as string;
+    userSockets.set(userId, socket);
+    console.log('Client connected', socket.id);
   }
 
-  async handleDisconnect(socket: Socket) {
-    // Логика, выполняемая при отключении клиента
-    console.log('Client disconnected:', socket.id);
+  async handleDisconnect(client: Socket) {
+    userSockets.forEach((socket, userId) => {
+      if (socket === client) {
+        userSockets.delete(userId);
+      }
+    });
+    console.log('Client disconnected:', client.id);
   }
 
-  //@todo Додедлать методы
   @SubscribeMessage('message:get')
   async handleMessagesGet(socket: Socket, data: { senderId; recipientId }) {
     const { senderId, recipientId } = data;
@@ -43,7 +49,16 @@ export class MessageGateway
       senderId,
       recipientId,
     );
-    socket.emit('messages', messages);
+    const senderSocket = userSockets.get(senderId);
+    const recipientSocket = userSockets.get(recipientId);
+
+    if (senderSocket) {
+      senderSocket.emit('messages', messages);
+    }
+
+    if (recipientSocket) {
+      recipientSocket.emit('messages', messages);
+    }
   }
 
   @SubscribeMessage('message:post')
